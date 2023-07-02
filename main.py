@@ -26,8 +26,12 @@ def check_user(credentials: HTTPBasicCredentials = Depends(security)):
 class Body(BaseModel):
     prompt: str
 
+@app.get("/")
+def root():
+    return {"message":"keep alive"}
+
 @app.post("/")
-def root(body:Body,user: str = Depends(check_user)):
+async def reply(body:Body,user: str = Depends(check_user)):
     token = os.getenv("POE")
     client = poe.Client(token)
     prompt = body.prompt
