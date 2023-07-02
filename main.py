@@ -1,42 +1,33 @@
 import os
 import poe
-import secrets
-from typing import Annotated
 from pydantic import BaseModel
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
-
+app = FastAPI(title="claudeAPI")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 security = HTTPBasic()
 
-
-def get_current_username(
-    credentials: Annotated[HTTPBasicCredentials, Depends(security)]
-):
-    current_username_bytes = credentials.username.encode("utf8")
-    correct_username_bytes = os.getenv("UNAME").encode('utf-8')
-    is_correct_username = secrets.compare_digest(
-        current_username_bytes, correct_username_bytes
-    )
-    current_password_bytes = credentials.password.encode("utf8")
-    correct_password_bytes = os.getenv("PWORD").encode('utf-8')
-    is_correct_password = secrets.compare_digest(
-        current_password_bytes, correct_password_bytes
-    )
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return credentials.username
+def check_user(credentials: HTTPBasicCredentials = Depends(security)):
+    username = credentials.username
+    password = credentials.password
+    if username == os.getenv('UNAME') and password == os.getenv('PWORD'):
+        return username
+    else:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
 
 class Body(BaseModel):
     prompt: str
 
 @app.post("/")
-def claude(username: Annotated[str, Depends(get_current_username)], body:Body):
+def root(body:Body,user: str = Depends(check_user)):
     token = os.getenv("POE")
     client = poe.Client(token)
     prompt = body.prompt
