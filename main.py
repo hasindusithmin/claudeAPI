@@ -1,5 +1,6 @@
 import os
 import poe
+from enum import Enum
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -26,15 +27,24 @@ def check_user(credentials: HTTPBasicCredentials = Depends(security)):
 class Body(BaseModel):
     prompt: str
 
+class ChatBot(str, Enum):
+    capybara ="sage"
+    a2 ="claude"
+    chinchilla="chatgpt"
+
 @app.get("/")
 def root():
     return {"message":"keep alive"}
 
 @app.post("/")
-async def reply(body:Body,user: str = Depends(check_user)):
-    token = os.getenv("POE")
-    client = poe.Client(token)
-    prompt = body.prompt
-    for chunk in client.send_message("a2", prompt):
-        pass
-    return chunk["text"]
+async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):
+    try:
+        engine = "a2" if engine is None else engine.name
+        token = os.getenv("POE")
+        client = poe.Client(token)
+        prompt = body.prompt
+        for chunk in client.send_message(engine, prompt):
+            pass
+        return chunk["text"]
+    except:
+        raise HTTPException(status_code=500,detail="Please try again later")
