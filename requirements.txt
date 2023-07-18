@@ -1,3 +1,3 @@
 fastapi
 uvicorn
-poe-api==0.4.8
+poe-api==0.4.10
