@@ -41,6 +41,7 @@ async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None)
     try:
         engine = "a2" if engine is None else engine.name
         token = os.getenv("POE")
+        print(f'🔖🔖 {token[:10]}...')
         client = poe.Client(token)
         prompt = body.prompt
         for chunk in client.send_message(engine, prompt):
