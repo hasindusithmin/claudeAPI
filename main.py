@@ -1,10 +1,12 @@
 import os
 import poe
+import requests
 from enum import Enum
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from tasks import feed_converter, parallel_fetcher
 
 app = FastAPI(title="claudeAPI")
 app.add_middleware(
@@ -32,10 +34,38 @@ class ChatBot(str, Enum):
     a2 ="claude"
     chinchilla="chatgpt"
     llama_2_7b_chat = 'Llama'
+    
+countries_codes = ['AR', 'AU', 'AT', 'BE', 'BR', 'CA', 'CL', 'CO', 'CZ', 'DK', 'EG', 'FI', 'FR', 'DE', 'GR', 'HK', 'HU', 'IN', 'ID', 'IE', 'IL', 'IT', 'JP', 'KE', 'MY', 'MX', 'NL', 'NZ', 'NG', 'NO', 'PE', 'PH', 'PL', 'PT', 'RO', 'RU', 'SA', 'SG', 'ZA', 'KR', 'ES', 'SE', 'CH', 'TW', 'TH', 'TR', 'UA', 'GB', 'US', 'VN']
 
 @app.get("/")
 def root():
-    return {"message":"keep alive"}
+    raise HTTPException(status_code=200)
+
+@app.head("/")
+def keep():
+    raise HTTPException(status_code=200)
+
+@app.get("/trend")
+async def get_trend(code: str = Query(...)):   
+    code = code.upper() 
+    if code not in countries_codes:
+        raise HTTPException(status_code=404)
+    url = f'https://trends.google.com/trends/trendingsearches/daily/rss?geo={code}'
+    res = requests.get(url)
+    if res.status_code != 200:
+        raise HTTPException(status_code=500)
+    return feed_converter(res.text)['trends']
+    
+@app.get("/trends")
+async def get_trends(codes: str = Query(...)):
+    codes = codes.strip("[").strip("]").split(",")
+    new_codes = []
+    for code in codes:
+        code = code.upper()
+        if code in countries_codes:
+            new_codes.append(code)
+    return parallel_fetcher(new_codes)
+    
 
 @app.post("/")
 async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):
