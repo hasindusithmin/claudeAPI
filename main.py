@@ -41,7 +41,6 @@ def root():
 async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):
     try:
         engine = "a2" if engine is None else engine.name
-        return engine
         token = os.getenv("POE")
         print(f'🔖🔖 {token[:10]}...')
         client = poe.Client(token)
