@@ -3,7 +3,7 @@ import requests
 import xmltodict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-code_by_countries = {
+codes_by_countries = {
     'AR': 'Argentina',
     'AU': 'Australia',
     'AT': 'Austria',
@@ -56,6 +56,59 @@ code_by_countries = {
     'VN': 'Vietnam'
 }
 
+codes_by_flags = {
+    'AR': '🇦🇷',
+    'AU': '🇦🇺',
+    'AT': '🇦🇹',
+    'BE': '🇧🇪',
+    'BR': '🇧🇷',
+    'CA': '🇨🇦',
+    'CL': '🇨🇱',
+    'CO': '🇨🇴',
+    'CZ': '🇨🇿',
+    'DK': '🇩🇰',
+    'EG': '🇪🇬',
+    'FI': '🇫🇮',
+    'FR': '🇫🇷',
+    'DE': '🇩🇪',
+    'GR': '🇬🇷',
+    'HK': '🇭🇰',
+    'HU': '🇭🇺',
+    'IN': '🇮🇳',
+    'ID': '🇮🇩',
+    'IE': '🇮🇪',
+    'IL': '🇮🇱',
+    'IT': '🇮🇹',
+    'JP': '🇯🇵',
+    'KE': '🇰🇪',
+    'MY': '🇲🇾',
+    'MX': '🇲🇽',
+    'NL': '🇳🇱',
+    'NZ': '🇳🇿',
+    'NG': '🇳🇬',
+    'NO': '🇳🇴',
+    'PE': '🇵🇪',
+    'PH': '🇵🇭',
+    'PL': '🇵🇱',
+    'PT': '🇵🇹',
+    'RO': '🇷🇴',
+    'RU': '🇷🇺',
+    'SA': '🇸🇦',
+    'SG': '🇸🇬',
+    'ZA': '🇿🇦',
+    'KR': '🇰🇷',
+    'ES': '🇪🇸',
+    'SE': '🇸🇪',
+    'CH': '🇨🇭',
+    'TW': '🇹🇼',
+    'TH': '🇹🇭',
+    'TR': '🇹🇷',
+    'UA': '🇺🇦',
+    'GB': '🇬🇧',
+    'US': '🇺🇸',
+    'VN': '🇻🇳'
+}
+
 def str_to_int_with_regex(s):
     numeric_part = re.sub(r"[^\d]", "", s)
     return int(numeric_part)
@@ -79,7 +132,7 @@ def feed_converter(text):
             "pubDate":pubDate,
             "picture":picture
         })
-    return {"country":code_by_countries[code],"trends":new_items}
+    return {"country":codes_by_countries[code], "trends":new_items, "flag": codes_by_flags[code]}
 
 def fetch(endpoint_url):
     try:
