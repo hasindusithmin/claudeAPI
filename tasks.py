@@ -3,6 +3,59 @@ import requests
 import xmltodict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+code_by_countries = {
+    'AR': 'Argentina',
+    'AU': 'Australia',
+    'AT': 'Austria',
+    'BE': 'Belgium',
+    'BR': 'Brazil',
+    'CA': 'Canada',
+    'CL': 'Chile',
+    'CO': 'Colombia',
+    'CZ': 'Czechia',
+    'DK': 'Denmark',
+    'EG': 'Egypt',
+    'FI': 'Finland',
+    'FR': 'France',
+    'DE': 'Germany',
+    'GR': 'Greece',
+    'HK': 'Hong Kong',
+    'HU': 'Hungary',
+    'IN': 'India',
+    'ID': 'Indonesia',
+    'IE': 'Ireland',
+    'IL': 'Israel',
+    'IT': 'Italy',
+    'JP': 'Japan',
+    'KE': 'Kenya',
+    'MY': 'Malaysia',
+    'MX': 'Mexico',
+    'NL': 'Netherlands',
+    'NZ': 'New Zealand',
+    'NG': 'Nigeria',
+    'NO': 'Norway',
+    'PE': 'Peru',
+    'PH': 'Philippines',
+    'PL': 'Poland',
+    'PT': 'Portugal',
+    'RO': 'Romania',
+    'RU': 'Russia',
+    'SA': 'Saudi Arabia',
+    'SG': 'Singapore',
+    'ZA': 'South Africa',
+    'KR': 'South Korea',
+    'ES': 'Spain',
+    'SE': 'Sweden',
+    'CH': 'Switzerland',
+    'TW': 'Taiwan',
+    'TH': 'Thailand',
+    'TR': 'Türkiye',
+    'UA': 'Ukraine',
+    'GB': 'United Kingdom',
+    'US': 'United States',
+    'VN': 'Vietnam'
+}
+
 def str_to_int_with_regex(s):
     numeric_part = re.sub(r"[^\d]", "", s)
     return int(numeric_part)
@@ -11,7 +64,7 @@ def feed_converter(text):
     new_items = []
     rss_data = xmltodict.parse(text)
     channel = rss_data['rss']['channel']
-    country = channel['link'][-2:]
+    code = channel['link'][-2:]
     items = channel['item']
     for item in items:
         title = item['title']
@@ -26,7 +79,7 @@ def feed_converter(text):
             "pubDate":pubDate,
             "picture":picture
         })
-    return {"country":country,"trends":new_items}
+    return {"country":code_by_countries[code],"trends":new_items}
 
 def fetch(endpoint_url):
     try:
