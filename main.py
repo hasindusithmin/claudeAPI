@@ -2,6 +2,7 @@ import os
 import poe
 import requests
 from enum import Enum
+from typing import List
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -28,6 +29,10 @@ def check_user(credentials: HTTPBasicCredentials = Depends(security)):
 
 class Body(BaseModel):
     prompt: str
+    
+class Codes(BaseModel):
+    codes: List[str]
+
 
 class ChatBot(str, Enum):
     capybara ="sage"
@@ -56,11 +61,10 @@ async def get_trend(code: str = Query(...)):
         raise HTTPException(status_code=500)
     return feed_converter(res.text)['trends']
     
-@app.get("/trends")
-async def get_trends(codes: str = Query(...)):
-    codes = codes.strip("[").strip("]").split(",")
+@app.post("/trends")
+async def get_trends(body: Codes):
     new_codes = []
-    for code in codes:
+    for code in body.codes:
         code = code.upper()
         if code in countries_codes:
             new_codes.append(code)
