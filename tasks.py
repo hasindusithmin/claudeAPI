@@ -151,5 +151,5 @@ def parallel_fetcher(codes):
             text = future.result()
             if text is not None:
                 feed_data = feed_converter(text)
-                successful_results.append({"country":feed_data['country'],"trends":feed_data['trends']})
+                successful_results.append({"country":feed_data['country'],"trends":feed_data['trends'],"flag":feed_data['flag']})
         return successful_results
