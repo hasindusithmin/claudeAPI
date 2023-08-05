@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from tasks import feed_converter, parallel_fetcher
+from quora import get_search_results
 
 app = FastAPI(title="claudeAPI")
 app.add_middleware(
@@ -69,7 +70,10 @@ async def get_trends(body: Codes):
         if code in countries_codes:
             new_codes.append(code)
     return parallel_fetcher(new_codes)
-    
+
+@app.get("/quora/{keyword}")
+async def get_quora_answers(keyword: str):
+    return get_search_results(keyword)
 
 @app.post("/")
 async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):
