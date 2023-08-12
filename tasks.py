@@ -125,12 +125,14 @@ def feed_converter(text):
         description = item['description']
         pubDate = item['pubDate']
         picture = item.get('ht:picture')
+        news = item.get('ht:news_item')
         new_items.append({
             "title":title,
             "traffic":str_to_int_with_regex(traffic),
             "description":description,
             "pubDate":pubDate,
-            "picture":picture
+            "picture":picture,
+            "news":news
         })
     return {"country":codes_by_countries[code], "trends":new_items, "flag": codes_by_flags[code]}
 
