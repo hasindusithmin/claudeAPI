@@ -9,6 +9,8 @@ from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from tasks import feed_converter, parallel_fetcher
 from quora import get_search_results
+from GoogleNews import GoogleNews
+from urllib.parse import urlparse, parse_qs
 
 app = FastAPI(title="claudeAPI")
 app.add_middleware(
@@ -75,6 +77,24 @@ async def get_trends(body: Codes):
 @app.get("/quora/{keyword}")
 async def get_quora_answers(keyword: str):
     return get_search_results(keyword)
+
+def get_link(url):
+    parsed_url = urlparse(url)
+    query_parameters = parse_qs(parsed_url.query)
+    return query_parameters.get('url') or ['']
+
+@app.get("/hotnews/{keyword}")
+async def get_google_news(keyword: str, region: str = 'US'):
+    googlenews = GoogleNews(
+        period='7d',
+        encode='utf-8',
+        lang='en',
+        region=region
+    )
+    googlenews.search(keyword)
+    results = googlenews.results(sort=True)
+    return [{"title":result['title'],"source":result['media'],"link":get_link(result['link'])[0],"time":result['date']} for result in results]
+    
 
 # @app.post("/")
 # async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):

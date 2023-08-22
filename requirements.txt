@@ -3,3 +3,4 @@ uvicorn
 poe-api==0.5.2
 requests
 xmltodict
+GoogleNews
