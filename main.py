@@ -83,15 +83,19 @@ def get_link(url):
     query_parameters = parse_qs(parsed_url.query)
     return query_parameters.get('url') or ['']
 
-@app.get("/hotnews/{keyword}")
-async def get_google_news(keyword: str, region: str = 'US'):
+class Term(BaseModel):
+    query: str
+    region: str
+
+@app.post("/hotnews")
+async def get_google_news(term: Term):
     googlenews = GoogleNews(
         period='7d',
         encode='utf-8',
         lang='en',
-        region=region
+        region=term.region
     )
-    googlenews.search(keyword)
+    googlenews.search(term.query)
     results = googlenews.results(sort=True)
     return [{"title":result['title'],"source":result['media'],"link":get_link(result['link'])[0],"time":result['date']} for result in results]
     
