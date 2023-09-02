@@ -97,7 +97,7 @@ async def get_google_news(term: Term):
     )
     googlenews.search(term.query)
     results = googlenews.results(sort=True)
-    return [{"title":result['title'],"source":result['media'],"link":get_link(result['link'])[0],"time":result['date']} for result in results]
+    return [{"title":result['title'],"source":result['media'],"link":result['link'],"time":result['date']} for result in results]
     
 
 # @app.post("/")
