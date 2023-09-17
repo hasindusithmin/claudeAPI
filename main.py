@@ -11,6 +11,7 @@ from tasks import feed_converter, parallel_fetcher
 from quora import get_search_results
 from GoogleNews import GoogleNews
 from urllib.parse import urlparse, parse_qs
+import xmltodict
 
 app = FastAPI(title="claudeAPI")
 app.add_middleware(
@@ -87,8 +88,8 @@ class Term(BaseModel):
     query: str
     region: str
 
-@app.post("/hotnews")
-async def get_google_news(term: Term):
+@app.post("/hotnews/v1")
+async def get_google_news_v1(term: Term):
     googlenews = GoogleNews(
         period='7d',
         encode='utf-8',
@@ -99,6 +100,23 @@ async def get_google_news(term: Term):
     results = googlenews.results(sort=True)
     return [{"title":result['title'],"source":result['media'],"link":result['link'],"time":result['date']} for result in results]
     
+class TermV2(BaseModel):
+    query: str
+    language: str
+    country: str
+    ceid: str
+
+@app.post("/hotnews/v2")
+async def get_google_news_v2(term: TermV2):
+    url = f'https://news.google.com/rss/search?q={term.query}&hl={term.language}&gl={term.country}&ceid={term.ceid}'
+    res = requests.get(url)
+    if res.status_code != 200:
+        raise HTTPException(status_code=500)
+    rss_data = xmltodict.parse(res.text)
+    channel = rss_data['rss']['channel']
+    items = channel['item']
+    return items
+
 
 # @app.post("/")
 # async def reply(body:Body,user: str = Depends(check_user),engine:ChatBot = None):
