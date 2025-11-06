@@ -13,7 +13,7 @@ from GoogleNews import GoogleNews
 from urllib.parse import urlparse, parse_qs
 import xmltodict
 
-app = FastAPI(title="claudeAPI")
+app = FastAPI(title="claudeAPI-V1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
