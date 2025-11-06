@@ -1,0 +1,147 @@
+name: Auto Generate README
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/generate-readme.yml'
+
+jobs:
+  generate-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Generate README.md
+        run: |
+          python << 'EOF'
+          import os
+          import json
+          from datetime import datetime
+
+          # Read project structure
+          project_name = "Dialpad Framework Automation"
+          
+          readme_content = f"""# {project_name}
+
+          ## Overview
+          This is an automated framework for Dialpad application development and testing.
+
+          ## Project Structure
+          
+          - **client/** - Frontend Vue.js application
+          - **server/** - Backend Python (Sanic) server
+          - **devops/** - Docker, Terraform, and deployment configurations
+          - **data/** - Endpoint definitions and configuration data
+          - **.github/workflows/** - CI/CD automation workflows
+
+          ## Prerequisites
+
+          - Python 3.8+
+          - Node.js 20+
+          - Docker (for containerized deployment)
+
+          ## Setup Instructions
+
+          ### Server Setup
+          ```bash
+          cd server
+          pip install -r requirements/dev.txt
+          python server.py
+          ```
+
+          ### Client Setup
+          ```bash
+          cd client
+          npm install
+          npm run dev
+          ```
+
+          ## Development
+
+          ### Running Tests
+          ```bash
+          # Server tests
+          cd server
+          pytest tests/
+
+          # Client tests
+          cd client
+          npm test
+          ```
+
+          ### Docker Deployment
+          ```bash
+          cd devops/docker/compose
+          docker-compose up -d
+          ```
+
+          ## Configuration
+
+          - Endpoints are defined in `data/endpoints.json`
+          - Environment variables can be managed through `devops/` scripts
+          - Client configuration is in `client/src/config.js`
+          - Server configuration is in `server/core/config.py`
+
+          ## Contributing
+
+          1. Create a feature branch (`DI-XXX`)
+          2. Make your changes
+          3. Submit a pull request to `main`
+
+          ## Automated Workflows
+
+          - **Auto Generate Code**: Automatically generates code when `data/endpoints.json` changes
+          - **Auto Generate README**: Updates this README on main branch pushes
+
+          ## License
+
+          Copyright © {datetime.now().year} Dialpad. All rights reserved.
+
+          ---
+          *Last updated: {datetime.now().strftime('%Y-%m-%d')}*
+          """
+
+          with open('README.md', 'w') as f:
+              f.write(readme_content)
+          
+          print("README.md generated successfully!")
+          EOF
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          if [[ -n $(git status -s README.md) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit generated README
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "docs: auto-generate README.md [skip ci]"
+
+      - name: Push changes
+        if: steps.git-check.outputs.changes == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
